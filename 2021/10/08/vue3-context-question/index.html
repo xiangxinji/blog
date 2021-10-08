@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     
-    <title>linux 安装 gitlab | xiang xin ji</title>
+    <title>Vue3 及相关生态问题 | xiang xin ji</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
     
@@ -137,7 +137,7 @@
             <section class="inner">
                 <section class="inner-main">
                     <div class="post">
-    <article id="post-ckui6m2910004579i8qm923oa" class="article article-type-post" itemscope
+    <article id="post-ckui6m2940006579i9g783uif" class="article article-type-post" itemscope
     itemprop="blogPost">
 
     <div class="article-inner">
@@ -153,7 +153,7 @@
             
   
     <h1 class="article-title" itemprop="name">
-      linux 安装 gitlab
+      Vue3 及相关生态问题
     </h1>
   
 
@@ -163,18 +163,18 @@
         <div class="article-more-info article-more-info-post hairline">
 
             <div class="article-date">
-  <time datetime="2021-10-08T08:07:10.000Z" itemprop="datePublished">2021-10-08</time>
+  <time datetime="2021-10-08T09:19:20.000Z" itemprop="datePublished">2021-10-08</time>
 </div>
 
             
             <div class="article-category">
-                <a class="article-category-link" href="/categories/%E8%BF%90%E7%BB%B4%E7%9B%B8%E5%85%B3/">运维相关</a>
+                <a class="article-category-link" href="/categories/FE/">前端相关</a>
             </div>
             
 
             
             <div class="article-tag">
-                <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/gitlab/" rel="tag">gitlab</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/linux/" rel="tag">linux</a></li></ul>
+                <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vue/" rel="tag">vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vue3/" rel="tag">vue3</a></li></ul>
             </div>
             
 
@@ -187,47 +187,98 @@
         </div>
 
         <div class="article-entry post-inner-html hairline" itemprop="articleBody">
-            <ol>
-<li>取得镜像源</li>
-<li>安装 gitlab (通过yum)</li>
-<li>run</li>
-<li>汉化</li>
-</ol>
+            <ul>
+<li>不支持纯方法的异步组件</li>
+<li>Vue-router 4.0 不能使用通配符问题</li>
+<li>store , 状态,方法, setup 返回状态丢失</li>
+<li>Element-Plus el-table-columns 使用插槽并且使用自定义指令导致警告 (新版本已经修复)</li>
+<li>路由匹配不到页面(Vue3新特性Fragment)</li>
+<li>使用JS生产APP进行挂载,导致组件加载失败,并且报错 created not defined</li>
+<li>使用 Computed 去取得 ref 组件,导致获取出来的状态在某种情况下被缓存</li>
+<li>setup script 给组件定义 name</li>
+<li>setup script 使用 component 找不到 import 的组件</li>
+<li>watch route 导致生产环境崩溃</li>
+</ul>
 <span id="more"></span>
 
-
-<h2 id="取得镜像源"><a href="#取得镜像源" class="headerlink" title="取得镜像源"></a>取得镜像源</h2><p>首先 yum 是可以直接下载 gitlab-se 的， 但是好像很慢， 就打算把它下载到本地之后在通过本地安装</p>
-<p>之前</p>
-<pre><code class="bash">yum install gitabxxxxxx.rpm 
+<h2 id="不支持纯方法的异步组件"><a href="#不支持纯方法的异步组件" class="headerlink" title="不支持纯方法的异步组件"></a>不支持纯方法的异步组件</h2><p>之前定义异步组件或者是异步加载一个组件可以这个组件为一个纯函数,里面使用了 webpack 的 require 方法 ,如下:</p>
+<pre><code class="js">(resolve) =&gt; require([`@/views/$&#123;view&#125;`], resolve)
 </code></pre>
-<p>现在是我们直接吧 rpm文件下载好，然后在上传到服务器上 ， 这里推荐腾讯云 ， 不推荐使用 清华的 ， 清华的也很慢 不确定是不是我的网速问题</p>
-<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><pre><code class="bash">yum localinstall ./gitlab-12.0.0.stable.rpm 
+<p>现在Vue3 应该是吧这个标准统一化了, 全部使用 return new Promise 的标准</p>
+<pre><code class="js">() =&gt; new Promise((resolve) =&gt; &#123;
+    require([`@/views$&#123;c&#125;.vue`], resolve);
+&#125;)
 </code></pre>
-<p>在 run 之前，我们需要更改一下配置 ，就是gitlab 的 IP地址 ， 由于我这里是虚拟机 ， 用的就是 127.0.0.1:10000 (如果不带端口，就是80 ， 可能会冲突)</p>
-<p>之后我们 , 重新饮用配置</p>
-<pre><code class="bash">gitlab-ctl reconfigure
+<h2 id="Vue-router-4-0-不能使用通配符问题"><a href="#Vue-router-4-0-不能使用通配符问题" class="headerlink" title="Vue-router 4.0 不能使用通配符问题"></a>Vue-router 4.0 不能使用通配符问题</h2><pre><code class="js">&#123;
+    // 匹配所有路径  vue2使用*   vue3使用/:pathMatch(.*)*或/:pathMatch(.*)或/:catchAll(.*)
+    path: &quot;/:pathMatch(.*)*&quot;,
+        name
+:
+    &quot;404&quot;,
+        component
+:
+    () =&gt; import(&quot;../components/NoFind.vue&quot;)
+&#125;
 </code></pre>
-<p>再进行运行</p>
-<h2 id="run"><a href="#run" class="headerlink" title="run"></a>run</h2><pre><code>gitlab-ctl start 
+<p>原因：Vue Router不再使用path-to-regexp，而是实现了自己的解析系统，该系统允许路由排名并启用动态路由。由于我们通常会在每个项目中添加一条单独的包罗万象的路线，因此支持的特殊语法没有太大的好处*<br>。参数的编码是跨路线编码，无一例外使事情更容易预测。</p>
+<h2 id="store-状态-方法-setup-返回状态丢失"><a href="#store-状态-方法-setup-返回状态丢失" class="headerlink" title="store , 状态,方法, setup 返回状态丢失"></a>store , 状态,方法, setup 返回状态丢失</h2><p>原因:未知 尝试整改方案 ,从 js 定义中的状态进行抽离, 特别是 Ref 和 store . 另外 使用 useStore 请在组件的 setup 方法进行使用</p>
+<h2 id="路由匹配不到页面-Vue3新特性Fragment"><a href="#路由匹配不到页面-Vue3新特性Fragment" class="headerlink" title="路由匹配不到页面(Vue3新特性Fragment)"></a>路由匹配不到页面(Vue3新特性Fragment)</h2><p>在vue3 引入了一个新特性, Fragment , 这个特性可以让我们的组件有多个根节点, 但是 因为这个特性跟 vue-router 有冲突, 可能是因为 vue 做了这方面的处理, vue-router 还没有处理 Fragment.<br>所以在页面上也最好不要使用Fragment 特性</p>
+<p>之后继续确保页面组件只有一个根节点就行了</p>
+<h2 id="使用-Computed-去取得-ref-组件-导致获取出来的状态在某种情况下被缓存"><a href="#使用-Computed-去取得-ref-组件-导致获取出来的状态在某种情况下被缓存" class="headerlink" title="使用 Computed 去取得 ref 组件,导致获取出来的状态在某种情况下被缓存"></a>使用 Computed 去取得 ref 组件,导致获取出来的状态在某种情况下被缓存</h2><p>触发如下:<br>A 组件 —&gt;  B 组件<br>我A组件调用了 B组件, 并且这个 B组件是使用了 v-if 控制的 ,而且我在 A组件的 computed 计算了这个 B组件的ref , 之后我使用computed 计算出来的 ref 调用 B组件的方法</p>
+<pre><code class="js">&#123;
+    computed : &#123;
+        formRef()
+        &#123;
+            return this.$refs.numberForms
+        &#125;
+    ,
+    &#125;
+,
+    methods : &#123;
+        run()
+        &#123;
+            const data = this.formRef.getValue()
+        &#125;
+    &#125;
+&#125;
 </code></pre>
-<p>当使用了 gitlab start 那么，这个gitlab 就已经开启了， 并且会开启很多很多服务  ， 之后我们就可以去访问了</p>
-<p>stop</p>
-<pre><code class="bash">gitlab-ctl stop 
+<p>此时这个data 组件创建销毁之后 ref 被缓存起来了, 就导致获取出来的状态是可能之前已经销毁了的ref 状态 解决方案:  使用 this.$refs 去取得组件实例</p>
+<h2 id="setup-script-给组件定义-name"><a href="#setup-script-给组件定义-name" class="headerlink" title="setup script 给组件定义 name"></a>setup script 给组件定义 name</h2><p>在 vue3 中可以使用 setup script 来进行 setup 操作 , 但是在之前我们定义一个组件的名称都是直接使用name 字段 如下</p>
+<pre><code class="js">export default &#123;name: &#39;ComponentName&#39;&#125;
 </code></pre>
-<p>restart</p>
-<pre><code class="bash">gitlab-ctl restart 
+<p>由于setup script 不需要 export default , 所以组件名称也不能定义.</p>
+<p>解决方案1 : 改造现有代码,将setup script 转换成 export default / export default defineComponent({})</p>
+<p>解决方案2 : 增加一个 script 块 , 在里面定义 export default { name : ‘Component’}</p>
+<p>如下:</p>
+<pre><code class="vue">
+&lt;script setup&gt;
+// .... 
+&lt;/script&gt;
+&lt;script&gt;
+export default &#123;
+  name: &#39;xxx&#39;
+&#125;
+&lt;/script&gt;
 </code></pre>
-<p>查看各服务的状态</p>
-<pre><code class="bash">gitlab-ctl status
+<h2 id="setup-script-使用-component-找不到-import-的组件"><a href="#setup-script-使用-component-找不到-import-的组件" class="headerlink" title="setup script 使用 component 找不到 import 的组件"></a>setup script 使用 component 找不到 import 的组件</h2><p>如果一个组件是使用的 setup script 并且其中使用了 component :is 去结合动态组件, 那么 setup 里面引入的 component 是无效的. 解决办法也只能将现有代码进行重构</p>
+<pre><code class="js">export default defineComponent(&#123;
+    components: &#123;
+        // ... 显式注册
+    &#125;
+&#125;)
 </code></pre>
-<h2 id="汉化"><a href="#汉化" class="headerlink" title="汉化"></a>汉化</h2><p>其实汉化这个功能我没有弄出来一个完美的方案，也在网上参考了一些文章  ， 直接说一下结果吧。。。</p>
-<ol>
-<li>先去拉取 gitlab 的中文包</li>
-<li>然后再拷贝到 /opt/gitlab/embedded/service/gitlab-rails</li>
-<li>reconfigure ， restart</li>
-</ol>
-<p>我自己尝试出来是部分汉化， 并且很多功能直接报错 500 ， 然后就没有尝试其他的了 ， 其实还有一种方法是通过git , 其实英文版也能用</p>
-<p>算了</p>
+<h2 id="watch-route-导致生产环境崩溃"><a href="#watch-route-导致生产环境崩溃" class="headerlink" title="watch route 导致生产环境崩溃"></a>watch route 导致生产环境崩溃</h2><p>之前有遇到这个问题 就是因为代码中 有一句</p>
+<pre><code class="js">const route = useRoute()
+watch(() =&gt; route, v =&gt; &#123;
+    // .... 
+&#125;)
+</code></pre>
+<p>生产环境直接崩溃, 在开发环境没问题 , 解决他就是监听某个具体的属性 , 比如下</p>
+<pre><code class="js">const route = useRoute()
+watch(() =&gt; route.path, v =&gt; &#123;
+    // .... 
+&#125;)
+</code></pre>
 
         </div>
 
@@ -246,19 +297,10 @@
     
 <nav class="article-nav">
   
-    <a href="/2021/10/08/linux-install-npm-private/" id="article-nav-newer" class="article-nav-link-wrap">
-      <div class="article-nav-caption">下一篇</div>
-      <div class="article-nav-title">
-        
-          linux 安装 npm 私服(基于verdaccio)
-        
-      </div>
-    </a>
   
-  
-    <a href="/2021/10/08/linux-install-docker/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2021/10/08/linux-install-npm-private/" id="article-nav-older" class="article-nav-link-wrap">
       <div class="article-nav-caption">上一篇</div>
-      <div class="article-nav-title">linux 安装 docker</div>
+      <div class="article-nav-title">linux 安装 npm 私服(基于verdaccio)</div>
     </a>
   
 </nav>
@@ -267,15 +309,15 @@
     <section class="share">
         <div class="share-title">分享</div>
         <a class="share-item" target="_blank"
-            href="https://twitter.com/share?text=linux 安装 gitlab - xiang xin ji&url=http://xiangxinji.github.io/2021/10/08/linux-install-gitlab/">
+            href="https://twitter.com/share?text=Vue3 及相关生态问题 - xiang xin ji&url=http://xiangxinji.github.io/2021/10/08/vue3-context-question/">
             <box-icon type='logo' name='twitter'></box-icon>
         </a>
         <a class="share-item" target="_blank"
-            href="https://www.facebook.com/sharer.php?title=linux 安装 gitlab - xiang xin ji&u=http://xiangxinji.github.io/2021/10/08/linux-install-gitlab/">
+            href="https://www.facebook.com/sharer.php?title=Vue3 及相关生态问题 - xiang xin ji&u=http://xiangxinji.github.io/2021/10/08/vue3-context-question/">
             <box-icon name='facebook-square' type='logo' ></box-icon>
         </a>
         <!-- <a class="share-item" target="_blank"
-            href="https://service.weibo.com/share/share.php?title=linux 安装 gitlab - xiang xin ji&url=http://xiangxinji.github.io/2021/10/08/linux-install-gitlab/&pic=">
+            href="https://service.weibo.com/share/share.php?title=Vue3 及相关生态问题 - xiang xin ji&url=http://xiangxinji.github.io/2021/10/08/vue3-context-question/&pic=">
             <div class="n-icon n-icon-weibo"></div>
         </a> -->
     </section>
