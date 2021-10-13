@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     
-    <title>Tag | babel | xiang xin ji</title>
+    <title>虚拟滚动 | xiang xin ji</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
     
@@ -36,7 +36,7 @@
 
 
     <script>
-        window.isPost = false
+        window.isPost = true
         window.aomori = {
             
             gitalk: {
@@ -140,35 +140,184 @@
         <div class="main">
             <section class="inner">
                 <section class="inner-main">
-                    <section class="archives-cover"></section>
+                    <div class="post">
+    <article id="post-ckupcxdzc0006b09i0hhbe8k9" class="article article-type-post" itemscope
+    itemprop="blogPost">
 
+    <div class="article-inner">
 
-    
-    
-    
-    
-    <section class="archives-wrap">
-        <div class="archive-year-wrap">
-        <a href="/archives/2021" class="archive-year">2021</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
+        
+          
+        
+        
+        
+
+        
+        <header class="article-header">
+            
   
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2021/10/08/babel-base-usage/">babel 的基础使用及概念</a>
+    <h1 class="article-title" itemprop="name">
+      虚拟滚动
     </h1>
   
+
+        </header>
+        
+
+        <div class="article-more-info article-more-info-post hairline">
+
+            <div class="article-date">
+  <time datetime="2021-10-13T09:32:33.000Z" itemprop="datePublished">2021-10-13</time>
+</div>
+
+            
+
+            
+            <div class="article-tag">
+                <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vue/" rel="tag">vue</a></li></ul>
+            </div>
+            
+
+            
+            <div class="article-busuanzi">
+                有 <span id="busuanzi_value_page_pv">N</span> 人看过
+            </div>
+            
+
+        </div>
+
+        <div class="article-entry post-inner-html hairline" itemprop="articleBody">
+            <p>什么是虚拟滚动: 我的定义是通过一种操作可以让一个滚动容器内的子元素可以不用把数据全部渲染出来, 就是指渲染出可视部分</p>
+<p>在滚动上确实是有很多方式去实现一些性能优化, 比如说懒加载, 底部加载,虚拟滚动….</p>
+<span id="more"></span>
+
+
+<p>拿懒加载来说, 优化的方式也是在用户可以看见的部分去动态的加载某些资源或者组件, 比如图片等 , 这个是一种</p>
+<p>比起底部加载也差不多,如果说普通的列表是分页, 那么底部加载就更适合移动端去做处理. 用户滑动到最下方再向服务器发起请求, 获取新数据, 然后再进行追加</p>
+<p>那虚拟滚动和上面两种方案也差不多</p>
+<hr>
+<p>场景: 后台数据量很大, 如果全部渲染到页面上会导致 dom 节点过多而卡顿或者卡死, 在这个时候我们就要去控制一个容器里面的节点元素不能太多 , 这个也是虚拟滚动的意义</p>
+<p>传统方式 : List 不论有多少, 统统都渲染出来</p>
+<p><img src="/images/contents/1.png" alt="img.png"></p>
+<p>虚拟滚动 : 只渲染可视区域的 List Item</p>
+<p><img src="/images/contents/2.png" alt="img.png"></p>
+<hr>
+<ol>
+<li>准备好一个模拟高度的元素</li>
+<li>确定好每个元素的大小</li>
+<li>确定好需要渲染的长度 / 确定好可视区域的宽高</li>
+<li>确定好可视区域的 list</li>
+</ol>
+<p>首先我们得模拟一个元素的高度, 也是因为这个我们要让这个容器弄出来一个虚拟的滚动条, 而且下面的元素全部都使用绝对定位</p>
+<p>假设我这要渲染的数据长度为 50 , 那这个虚拟的元素高度为 50 * 50</p>
+<pre><code class="vue">
+&lt;div class=&quot;mock-bar&quot; :style=&quot;&#123;height : data.length * 50 + &#39;px&#39;&#125;&quot;&gt;&lt;/div&gt;
+</code></pre>
+<p>每一个元素渲染的位置 : item.top = 当前元素索引 * 50 , 相当于提前计算好他们所展示的位置</p>
+<pre><code class="vue">
+&lt;div class=&quot;list-item&quot; v-for=&quot;item in sliceData&quot; :key=&quot;item.value&quot;
+     :style=&quot;&#123; top : (item.top) + &#39;px&#39; &#125;&quot;&gt;
+&#123;&#123; item.value &#125;&#125;
+&lt;/div&gt;
+</code></pre>
+<p>到这里第一步和第二部就做好了 , 然后我们要去确定范围, 我们可以去通过 scroll 事件监听这个元素滚动到了哪里</p>
+<pre><code class="js">const state = reactive(&#123;
+    start: 0,  // 规定 list 的渲染索引 
+    length: 15, // 已经他的渲染长度 
+&#125;)
+</code></pre>
+<p>然后通过 scroll 事件去执行计算方法, 算出 start 和 length</p>
+<p>Container 容器</p>
+<pre><code class="vue">
+&lt;div class=&quot;container&quot; @scroll=&quot;onContainerScroll&quot;&gt;
+&lt;!--    ...--&gt;
+&lt;/div&gt;
+</code></pre>
+<p>使用了节流函数 , 并且获取 scroll top , 去调用 computedDataScope 去计算需要展示的 list</p>
+<p>sliceData 才是真实渲染的 List 数组, 相当于每次都是在截取 全部数组中的一部分, 展示出来</p>
+<pre><code class="ts">function computedDataScope(top: number) &#123;
+    state.start = parseInt(top / 50)
+    sliceData.value = data.value.slice(state.start, state.start + state.length)
+&#125;
+
+const onContainerScroll = throttle(function (event: Event) &#123;
+    const target = event.target as HTMLElement
+    const t = target.scrollTop
+    state.scope.top = t
+    computedDataScope(t)
+&#125;, 100)
+computedDataScope(0)
+</code></pre>
+<p>Template</p>
+<pre><code class="vue">
+&lt;div class=&quot;list-item&quot; v-for=&quot;item in sliceData&quot; :key=&quot;item.value&quot;
+     :style=&quot;&#123; top : (item.top) + &#39;px&#39; &#125;&quot;&gt;
+    &#123;&#123; item.value &#125;&#125;
+&lt;/div&gt;
+</code></pre>
+
+        </div>
+
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+<nav class="article-nav">
+  
+  
+    <a href="/2021/10/08/vue3-context-question/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-caption">上一篇</div>
+      <div class="article-nav-title">Vue3 及相关生态问题</div>
+    </a>
+  
+</nav>
+
+
+    <section class="share">
+        <div class="share-title">分享</div>
+        <a class="share-item" target="_blank"
+            href="https://twitter.com/share?text=虚拟滚动 - xiang xin ji&url=http://xiangxinji.github.io/2021/10/13/virtual-rolling-practice/">
+            <box-icon type='logo' name='twitter'></box-icon>
+        </a>
+        <a class="share-item" target="_blank"
+            href="https://www.facebook.com/sharer.php?title=虚拟滚动 - xiang xin ji&u=http://xiangxinji.github.io/2021/10/13/virtual-rolling-practice/">
+            <box-icon name='facebook-square' type='logo' ></box-icon>
+        </a>
+        <!-- <a class="share-item" target="_blank"
+            href="https://service.weibo.com/share/share.php?title=虚拟滚动 - xiang xin ji&url=http://xiangxinji.github.io/2021/10/13/virtual-rolling-practice/&pic=">
+            <div class="n-icon n-icon-weibo"></div>
+        </a> -->
+    </section>
 
 </article>
 
 
-    </div></section>
 
 
 
 
+<section class="comments">
+    <div id="gitalk-container"></div>
+</section>
+
+
+
+
+
+
+
+<script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+</div>
                 </section>
             </section>
 
@@ -190,6 +339,12 @@
 <div class="widget" id="widget">
     
       
+  <div class="widget-wrap">
+    <div class="widget-inner">
+      <div class="toc post-toc-html"></div>
+    </div>
+  </div>
+
     
       
   <div class="widget-wrap widget-cate">
